@@ -17,6 +17,7 @@ const PlaybackBar: React.FC = () => {
   const sliderActiveRef = React.useRef(false);
   const wasPlayingRef = React.useRef(false);
   const [sliderValue, setSliderValue] = React.useState(currentTime);
+  const formatTime = (t: number) => (Number.isFinite(t) ? t : 0).toFixed(1);
 
   // Only update sliderValue from context if not dragging
   React.useEffect(() => {
@@ -90,7 +91,7 @@ const PlaybackBar: React.FC = () => {
         type="range"
         min={0}
         max={duration}
-        step={0.01}
+        step={0.1}
         value={sliderValue}
         onChange={handleSliderChange}
         onMouseDown={handleSliderMouseDown}
@@ -100,8 +101,8 @@ const PlaybackBar: React.FC = () => {
         className="flex-1 mx-2 accent-orange-500 focus:outline-none focus:ring-0"
         aria-label="Seek video"
       />
-      <span className="w-16 text-right tabular-nums text-xs text-slate-200 shrink-0">
-        {Math.floor(sliderValue)} / {Math.floor(duration)}
+      <span className="w-24 text-right tabular-nums text-xs text-slate-200 shrink-0">
+        {formatTime(sliderValue)} / {formatTime(duration)}
       </span>
 
       <div className="text-xs text-slate-300 select-none ml-8 flex-col gap-y-0.5 hidden md:flex">
