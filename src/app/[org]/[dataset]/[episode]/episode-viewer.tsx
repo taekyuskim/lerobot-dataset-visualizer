@@ -320,6 +320,7 @@ function EpisodeViewerInner({
 
   // Use context for time sync
   const { currentTime, setCurrentTime, setIsPlaying, isPlaying } = useTime();
+  const initializedUrlTimeEpisodeRef = useRef<number | null>(null);
 
   // Pagination state
   const pageSize = 100;
@@ -355,16 +356,21 @@ function EpisodeViewerInner({
     };
   }, [org, dataset, episodeId]);
 
-  // Initialize based on URL time parameter
+  // Initialize from URL time only once per episode.
+  // This avoids paused URL-sync updates (integer seconds) from
+  // overwriting the in-memory playback time.
   useEffect(() => {
+    if (initializedUrlTimeEpisodeRef.current === episodeId) return;
+    initializedUrlTimeEpisodeRef.current = episodeId;
+
     const timeParam = searchParams.get("t");
-    if (timeParam) {
-      const timeValue = parseFloat(timeParam);
-      if (!isNaN(timeValue)) {
-        setCurrentTime(timeValue);
-      }
+    if (!timeParam) return;
+
+    const timeValue = Number.parseFloat(timeParam);
+    if (!Number.isNaN(timeValue)) {
+      setCurrentTime(timeValue);
     }
-  }, [searchParams, setCurrentTime]);
+  }, [episodeId, searchParams, setCurrentTime]);
 
   // sync with parent window hf.co/spaces
   useEffect(() => {
@@ -375,9 +381,10 @@ function EpisodeViewerInner({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      const { key } = e;
+      const { key, code } = e;
 
-      if (key === " ") {
+      if (code === "Space" || key === " ") {
+        if (e.repeat) return;
         e.preventDefault();
         setIsPlaying((prev: boolean) => !prev);
       } else if (key === "ArrowDown" || key === "ArrowUp") {
